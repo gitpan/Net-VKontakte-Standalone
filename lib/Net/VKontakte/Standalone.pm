@@ -9,7 +9,7 @@ use WWW::Mechanize;
 use JSON;
 use Carp;
 
-our $VERSION = '0.18_90';
+our $VERSION = '0.18_95';
 
 sub import {
 	my $class = shift;
@@ -56,6 +56,7 @@ sub _request {
 sub auth { # dirty hack
 	my ($self,$login,$password,$scope) = @_;
 	@{$self}{"login","password","scope"} = ($login, $password, $scope); # reuse in case of reauth
+	$self->{browser}->cookie_jar->clear; # VK won't give us the fields if we have authentificated cookies
 	$self->{browser}->get($self->auth_uri($scope));
 	$self->{browser}->submit_form(
 		with_fields => {
@@ -259,7 +260,7 @@ Should be a coderef to be called upon receiving {error} requiring CAPTCHA. The c
 
 =head1 METHODS
 
-=begin comment
+=over
 
 =item $vk->auth($login,$password,$scope)
 
@@ -267,9 +268,8 @@ This method should be called first. It uses OAuth2 to authentificate the user at
 and accepts the specified scope (seen at L<http://vk.com/dev/permissions>).
 After obtaining the access token is saved for future use.
 
-=end comment
-
-=over
+This is not a recommended way to authentificate standalone VKontakte applications, but it works (for now). Feel
+free to use it in small hacks but stay away from it in production.
 
 =item $vk->auth_uri($scope)
 
